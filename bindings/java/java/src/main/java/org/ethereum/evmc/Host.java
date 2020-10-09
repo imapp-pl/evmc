@@ -3,6 +3,8 @@
 // Licensed under the Apache License, Version 2.0.
 package org.ethereum.evmc;
 
+import org.ethereum.evmc.types.*;
+
 import static java.util.Objects.requireNonNull;
 
 import java.nio.ByteBuffer;
