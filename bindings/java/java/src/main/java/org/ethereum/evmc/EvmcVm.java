@@ -3,10 +3,11 @@
 // Licensed under the Apache License, Version 2.0.
 package org.ethereum.evmc;
 
-import org.ethereum.evmc.EvmcLoaderException;
-
+import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Objects;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 
 /**
  * The Java interface to the evm instance.
@@ -14,30 +15,67 @@ import java.util.Objects;
  * <p>Defines the Java methods capable of accessing the evm implementation.
  */
 public final class EvmcVm implements AutoCloseable {
-  private static EvmcVm evmcVm;
-  private static boolean isEvmcLibraryLoaded = false;
+  private static final Throwable errorLoadingEvmc;
   private ByteBuffer nativeVm;
+
+  static {
+    Throwable error = null;
+    try {
+      // load so containing the jni bindings to evmc
+      System.loadLibrary("libevmc-java");
+    } catch (UnsatisfiedLinkError e) {
+      String extension = null;
+      String operSys = System.getProperty("os.name").toLowerCase();
+      if (operSys.contains("win")) {
+        extension = "dll";
+      } else if (operSys.contains("nix") || operSys.contains("nux") || operSys.contains("aix")) {
+        extension = "so";
+      } else if (operSys.contains("mac")) {
+        extension = "dylib";
+      } else {
+        error = e;
+      }
+      if (extension != null) {
+        try {
+          Path evmcLib = Files.createTempFile("libevmc-java", extension);
+          Files.copy(
+              EvmcVm.class.getResourceAsStream("/libevmc-java." + extension),
+              evmcLib,
+              StandardCopyOption.REPLACE_EXISTING);
+          evmcLib.toFile().deleteOnExit();
+          try {
+            System.load(evmcLib.toAbsolutePath().toString());
+          } catch (UnsatisfiedLinkError e1) {
+            error = e1;
+          }
+        } catch (IOException ex) {
+          error = ex;
+        }
+      }
+    }
+    errorLoadingEvmc = error;
+  }
+
+  /**
+   * Returns true if the native library was loaded successfully and EVMC capabilities are available.
+   *
+   * @return true if the library is available
+   */
+  public static boolean isAvailable() {
+    return errorLoadingEvmc == null;
+  }
+
   /**
    * This method loads the specified evm shared library and loads/initializes the jni bindings.
    *
    * @param filename /path/filename of the evm shared object
-   * @throws EvmcLoaderException
+   * @throws EvmcLoaderException if the library fails to load
    */
   public static EvmcVm create(String filename) throws EvmcLoaderException {
-    if (!EvmcVm.isEvmcLibraryLoaded) {
-      try {
-        // load so containing the jni bindings to evmc
-        System.load(System.getProperty("user.dir") + "/../c/build/lib/libevmc-java.so");
-        EvmcVm.isEvmcLibraryLoaded = true;
-      } catch (UnsatisfiedLinkError e) {
-        System.err.println("Native code library failed to load.\n" + e);
-        System.exit(1);
-      }
+    if (!isAvailable()) {
+      throw new EvmcLoaderException("Cannot load evmc native library", errorLoadingEvmc);
     }
-    if (Objects.isNull(evmcVm)) {
-      evmcVm = new EvmcVm(filename);
-    }
-    return evmcVm;
+    return new EvmcVm(filename);
   }
 
   private EvmcVm(String filename) throws EvmcLoaderException {
@@ -47,9 +85,9 @@ public final class EvmcVm implements AutoCloseable {
   /**
    * This method loads the specified EVM implementation and returns its pointer.
    *
-   * @param Path to the dynamic object representing the EVM implementation.
+   * @param filename Path to the dynamic object representing the EVM implementation
    * @return Internal object pointer.
-   * @throws EvmcLoaderException
+   * @throws EvmcLoaderException if the library fails to load
    */
   private static native ByteBuffer load_and_create(String filename) throws EvmcLoaderException;
 
@@ -152,15 +190,9 @@ public final class EvmcVm implements AutoCloseable {
   /** get size of result struct */
   private static native int get_result_size();
 
-  /**
-   * This method cleans up resources
-   *
-   * @throws Exception
-   */
+  /** This method cleans up resources. */
   @Override
-  public void close() throws Exception {
+  public void close() {
     destroy(nativeVm);
-    isEvmcLibraryLoaded = false;
-    evmcVm = null;
   }
 }
