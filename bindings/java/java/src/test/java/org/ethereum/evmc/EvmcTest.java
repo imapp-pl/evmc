@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 final class EvmcTest {
   private static final String extension;
   private static final String exampleVmPath;
+
   static {
     String os = System.getProperty("os.name", "generic").toLowerCase();
     if (os.contains("mac") || os.contains("darwin")) {
