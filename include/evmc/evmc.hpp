@@ -143,18 +143,6 @@ inline constexpr uint32_t load32le(const uint8_t* data) noexcept
            (uint32_t{data[3]} << 24);
 }
 
-namespace fnv
-{
-constexpr auto prime = 0x100000001b3;              ///< The 64-bit FNV prime number.
-constexpr auto offset_basis = 0xcbf29ce484222325;  ///< The 64-bit FNV offset basis.
-
-/// The hashing transformation for 64-bit inputs based on the FNV-1a formula.
-inline constexpr uint64_t fnv1a_by64(uint64_t h, uint64_t x) noexcept
-{
-    return (h ^ x) * prime;
-}
-}  // namespace fnv
-
 
 /// The "equal to" comparison operator for the evmc::address type.
 inline constexpr bool operator==(const address& a, const address& b) noexcept
@@ -827,14 +815,12 @@ namespace std
 template <>
 struct hash<evmc::address>
 {
-    /// Hash operator using FNV1a-based folding.
+    /// Hash operator using (3a + b) folding of the address "words".
     constexpr size_t operator()(const evmc::address& s) const noexcept
     {
         using namespace evmc;
-        using namespace fnv;
-        return static_cast<size_t>(fnv1a_by64(
-            fnv1a_by64(fnv1a_by64(fnv::offset_basis, load64le(&s.bytes[0])), load64le(&s.bytes[8])),
-            load32le(&s.bytes[16])));
+        return static_cast<size_t>(3 * (3 * load64le(&s.bytes[0]) + load64le(&s.bytes[8])) +
+                                   load32le(&s.bytes[16]));
     }
 };
 
@@ -842,16 +828,12 @@ struct hash<evmc::address>
 template <>
 struct hash<evmc::bytes32>
 {
-    /// Hash operator using FNV1a-based folding.
+    /// Hash operator using (3a + b) folding of the bytes32 64-bit words.
     constexpr size_t operator()(const evmc::bytes32& s) const noexcept
     {
         using namespace evmc;
-        using namespace fnv;
-        return static_cast<size_t>(
-            fnv1a_by64(fnv1a_by64(fnv1a_by64(fnv1a_by64(fnv::offset_basis, load64le(&s.bytes[0])),
-                                             load64le(&s.bytes[8])),
-                                  load64le(&s.bytes[16])),
-                       load64le(&s.bytes[24])));
+        return static_cast<size_t>(3 * (3 * load64le(&s.bytes[0]) + load64le(&s.bytes[8])) +
+                                   (3 * load64le(&s.bytes[16]) + load64le(&s.bytes[24])));
     }
 };
 }  // namespace std

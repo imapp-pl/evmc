@@ -113,25 +113,25 @@ TEST(cpp, std_hash)
 
     using namespace evmc::literals;
 
-    static_assert(std::hash<evmc::address>{}({}) == static_cast<size_t>(0xd94d12186c0f2fb7), "");
-    static_assert(std::hash<evmc::bytes32>{}({}) == static_cast<size_t>(0x4d25767f9dce13f5), "");
+    static_assert(std::hash<evmc::address>{}({}) == 0, "");
+    static_assert(std::hash<evmc::bytes32>{}({}) == 0, "");
 
-    EXPECT_EQ(std::hash<evmc::address>{}({}), static_cast<size_t>(0xd94d12186c0f2fb7));
-    EXPECT_EQ(std::hash<evmc::bytes32>{}({}), static_cast<size_t>(0x4d25767f9dce13f5));
+    EXPECT_EQ(std::hash<evmc::address>{}({}), size_t{0});
+    EXPECT_EQ(std::hash<evmc::bytes32>{}({}), size_t{0});
 
     auto ea = evmc::address{};
     std::fill_n(ea.bytes, sizeof(ea), uint8_t{0xee});
-    EXPECT_EQ(std::hash<evmc::address>{}(ea), static_cast<size_t>(0x41dc0178e01b7cd9));
+    EXPECT_EQ(std::hash<evmc::address>{}(ea), static_cast<size_t>(0x3333333422222216));
 
     auto eb = evmc::bytes32{};
     std::fill_n(eb.bytes, sizeof(eb), uint8_t{0xee});
-    EXPECT_EQ(std::hash<evmc::bytes32>{}(eb), static_cast<size_t>(0xbb14e5c56b477375));
+    EXPECT_EQ(std::hash<evmc::bytes32>{}(eb), static_cast<size_t>(0xeeeeeeeeeeeeeee0));
 
     auto rand_address = 0xaa00bb00cc00dd00ee00ff001100220033004400_address;
-    EXPECT_EQ(std::hash<evmc::address>{}(rand_address), static_cast<size_t>(0x17f74b6894b0f6b7));
+    EXPECT_EQ(std::hash<evmc::address>{}(rand_address), static_cast<size_t>(0x082b075f09d408f7));
 
     auto rand_bytes32 = 0xbb01bb02bb03bb04bb05bb06bb07bb08bb09bb0abb0bbb0cbb0dbb0ebb0fbb00_bytes32;
-    EXPECT_EQ(std::hash<evmc::bytes32>{}(rand_bytes32), static_cast<size_t>(0x4efee0983bb6c4f5));
+    EXPECT_EQ(std::hash<evmc::bytes32>{}(rand_bytes32), static_cast<size_t>(0x6bb06bb05bb04bb0));
 
 #pragma warning(pop)
 }
