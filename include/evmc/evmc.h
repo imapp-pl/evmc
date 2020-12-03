@@ -798,7 +798,11 @@ typedef struct evmc_result (*evmc_execute_fn)(struct evmc_vm* vm,
                                               enum evmc_revision rev,
                                               const struct evmc_message* msg,
                                               uint8_t const* code,
-                                              size_t code_size);
+                                              size_t code_size,
+                                              unsigned int repeat,
+                                              bool measure_collective_time,
+                                              bool measure_each_time,
+                                              unsigned int instruction_to_measure);
 
 /**
  * Possible capabilities of a VM.

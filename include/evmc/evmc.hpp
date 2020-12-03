@@ -8,6 +8,7 @@
 #include <evmc/helpers.h>
 
 #include <functional>
+#include <iostream>
 #include <initializer_list>
 #include <utility>
 
@@ -660,9 +661,13 @@ public:
                    evmc_revision rev,
                    const evmc_message& msg,
                    const uint8_t* code,
-                   size_t code_size) noexcept
+                   size_t code_size,
+                   unsigned int repeat=1,
+                   bool measure_collective_time=false,
+                   bool measure_each_time=false,
+                   unsigned int instruction_to_measure=0) noexcept
     {
-        return result{m_instance->execute(m_instance, &host, ctx, rev, &msg, code, code_size)};
+        return result{m_instance->execute(m_instance, &host, ctx, rev, &msg, code, code_size, repeat, measure_collective_time, measure_each_time, instruction_to_measure)};
     }
 
     /// Convenient variant of the VM::execute() that takes reference to evmc::Host class.
@@ -670,9 +675,13 @@ public:
                    evmc_revision rev,
                    const evmc_message& msg,
                    const uint8_t* code,
-                   size_t code_size) noexcept
+                   size_t code_size,
+                   unsigned int repeat=1,
+                   bool measure_collective_time=false,
+                   bool measure_each_time=false,
+                   unsigned int instruction_to_measure=0) noexcept
     {
-        return execute(Host::get_interface(), host.to_context(), rev, msg, code, code_size);
+        return execute(Host::get_interface(), host.to_context(), rev, msg, code, code_size, repeat, measure_collective_time, measure_each_time, instruction_to_measure);
     }
 
     /// Executes code without the Host context.
@@ -686,10 +695,14 @@ public:
     result execute(evmc_revision rev,
                    const evmc_message& msg,
                    const uint8_t* code,
-                   size_t code_size) noexcept
+                   size_t code_size,
+                   unsigned int repeat,
+                   bool measure_collective_time,
+                   bool measure_each_time,
+                   unsigned int instruction_to_measure) noexcept
     {
         return result{
-            m_instance->execute(m_instance, nullptr, nullptr, rev, &msg, code, code_size)};
+            m_instance->execute(m_instance, nullptr, nullptr, rev, &msg, code, code_size, repeat, measure_collective_time, measure_each_time, instruction_to_measure)};
     }
 
     /// Returns the pointer to C EVMC struct representing the VM.

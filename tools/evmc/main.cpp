@@ -17,13 +17,22 @@ int main(int argc, const char** argv)
 
     std::string vm_config;
     std::string code_hex;
+    unsigned int reapeat_times = 1;
+    unsigned int instruction_to_measure = 0;
     evmc_message msg{};
     msg.gas = 1000000;
     auto rev = EVMC_ISTANBUL;
 
     auto& run_cmd = *app.add_subcommand("run", "Execute EVM bytecode");
-    run_cmd.add_option("code", code_hex, "Hex-encoded bytecode")->required();
-    run_cmd.add_option("--vm", vm_config, "EVMC VM module")->required()->envname("EVMC_VM");
+    const auto& measure_collective_time = run_cmd.add_flag("--measure-total",
+        "Measure execution time of all instructions");
+    const auto& measure_each_instruction_time = run_cmd.add_flag("--measure-all",
+        "Measure execution time of each instruction");
+
+  run_cmd.add_option("--measure-one", instruction_to_measure, "Number of instruction to measure, a positive integer");
+  run_cmd.add_option("code", code_hex, "Hex-encoded bytecode")->required();
+  run_cmd.add_option("--vm", vm_config, "EVMC VM module")->required()->envname("EVMC_VM");
+  run_cmd.add_option("--repeat", reapeat_times, "Number of execution repetitions, a non-negative integer");
     run_cmd.add_option("--gas", msg.gas, "Execution gas limit", true)
         ->check(CLI::Range(0, 1000000000));
     run_cmd.add_option("--rev", rev, "EVM revision", true);
@@ -59,7 +68,8 @@ int main(int argc, const char** argv)
 
             std::cout << "Executing on " << rev << " with " << msg.gas << " gas limit\n"
                       << "in " << vm_config << "\n";
-            const auto result = vm.execute(host, rev, msg, code.data(), code.size());
+            const auto result = vm.execute(host, rev, msg, code.data(), code.size(), reapeat_times,
+                *measure_collective_time, *measure_each_instruction_time, instruction_to_measure);
 
             const auto gas_used = msg.gas - result.gas_left;
 
