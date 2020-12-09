@@ -24,6 +24,7 @@ int main(int argc, const char** argv)
     auto rev = EVMC_ISTANBUL;
 
     auto& run_cmd = *app.add_subcommand("run", "Execute EVM bytecode");
+    const auto& print_opcodes = run_cmd.add_flag("--print-opcodes", "Print opcodes while executing");
     const auto& measure_collective_time = run_cmd.add_flag("--measure-total",
         "Measure execution time of all instructions");
     const auto& measure_each_instruction_time = run_cmd.add_flag("--measure-all",
@@ -68,7 +69,7 @@ int main(int argc, const char** argv)
 
             std::cout << "Executing on " << rev << " with " << msg.gas << " gas limit\n"
                       << "in " << vm_config << "\n";
-            const auto result = vm.execute(host, rev, msg, code.data(), code.size(), reapeat_times,
+            const auto result = vm.execute(host, rev, msg, code.data(), code.size(), reapeat_times, *print_opcodes,
                 *measure_collective_time, *measure_each_instruction_time, instruction_to_measure);
 
             const auto gas_used = msg.gas - result.gas_left;

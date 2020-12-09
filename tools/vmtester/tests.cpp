@@ -60,7 +60,7 @@ TEST_F(evmc_vm_test, execute_call)
 
     evmc_result result =
         vm->execute(vm, &evmc::MockedHost::get_interface(), mockedHost.to_context(),
-                    EVMC_MAX_REVISION, &msg, code.data(), code.size(), 1, false, false, 0);
+                    EVMC_MAX_REVISION, &msg, code.data(), code.size(), 1, false, false, false, 0);
 
     // Validate some constraints
     if (result.status_code != EVMC_SUCCESS && result.status_code != EVMC_REVERT)
@@ -94,7 +94,7 @@ TEST_F(evmc_vm_test, execute_create)
 
     evmc_result result =
         vm->execute(vm, &evmc::MockedHost::get_interface(), mockedHost.to_context(),
-                    EVMC_MAX_REVISION, &msg, code.data(), code.size(), 1, false, false, 0);
+                    EVMC_MAX_REVISION, &msg, code.data(), code.size(), 1, false, false, false, 0);
 
     // Validate some constraints
     if (result.status_code != EVMC_SUCCESS && result.status_code != EVMC_REVERT)
@@ -174,7 +174,7 @@ TEST_F(evmc_vm_test, precompile_test)
             EVMC_CALL,     0, 0, 65536, destination, evmc_address{}, nullptr, 0, evmc_uint256be{},
             evmc_bytes32{}};
 
-        evmc_result result = vm->execute(vm, nullptr, nullptr, EVMC_MAX_REVISION, &msg, nullptr, 0, 1, false, false, 0);
+        evmc_result result = vm->execute(vm, nullptr, nullptr, EVMC_MAX_REVISION, &msg, nullptr, 0, 1, false, false, false, 0);
 
         // Validate some constraints
 

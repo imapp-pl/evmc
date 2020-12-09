@@ -800,6 +800,7 @@ typedef struct evmc_result (*evmc_execute_fn)(struct evmc_vm* vm,
                                               uint8_t const* code,
                                               size_t code_size,
                                               unsigned int repeat,
+                                              bool print_opcodes,
                                               bool measure_collective_time,
                                               bool measure_each_time,
                                               unsigned int instruction_to_measure);

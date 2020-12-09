@@ -92,11 +92,12 @@ static inline struct evmc_result evmc_execute(struct evmc_vm* vm,
                                               uint8_t const* code,
                                               size_t code_size,
                                               unsigned int repeat,
+                                              bool print_opcodes,
                                               bool measure_collective_time,
                                               bool measure_each_time,
                                               unsigned int instruction_to_measure)
 {
-    return vm->execute(vm, host, context, rev, msg, code, code_size, repeat, measure_collective_time, measure_each_time, instruction_to_measure);
+    return vm->execute(vm, host, context, rev, msg, code, code_size, repeat, print_opcodes, measure_collective_time, measure_each_time, instruction_to_measure);
 }
 
 /// The evmc_result release function using free() for releasing the memory.
