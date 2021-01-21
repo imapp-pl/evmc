@@ -2,11 +2,31 @@
 // Copyright 2019 The EVMC Authors.
 // Licensed under the Apache License, Version 2.0.
 
+#include <chrono>
+#include <iostream>
+
 #include <CLI/CLI.hpp>
 #include <evmc/loader.h>
 #include <evmc/mocked_host.hpp>
 
 #include "utils.hpp"
+
+void measure_timer_overheads() {
+    int n = 200000;
+    long times[200000];
+    std::chrono::steady_clock::time_point start_time, end_time;
+    for (int i = 0; i < n; ++i) {
+        start_time = std::chrono::steady_clock::now();
+        end_time = std::chrono::steady_clock::now();
+        std::chrono::nanoseconds elapsed_nanoseconds = end_time - start_time;
+        //std::cout << elapsed_nanoseconds.count() << std::endl;
+        times[i] = elapsed_nanoseconds.count();
+    }
+    for (int i = 0; i < n; ++i) {
+        std::cout << times[i] << std::endl;
+    }
+}
+
 
 int main(int argc, const char** argv)
 {
@@ -22,6 +42,8 @@ int main(int argc, const char** argv)
     evmc_message msg{};
     msg.gas = 1000000;
     auto rev = EVMC_ISTANBUL;
+
+    auto& measure_overheads_cmd = *app.add_subcommand("measure-overheads", "Measure timer overhead");
 
     auto& run_cmd = *app.add_subcommand("run", "Execute EVM bytecode");
     const auto& print_opcodes = run_cmd.add_flag("--print-opcodes", "Print opcodes while executing");
@@ -79,6 +101,10 @@ int main(int argc, const char** argv)
             if (result.status_code == EVMC_SUCCESS || result.status_code == EVMC_REVERT)
                 std::cout << "Output:   " << hex(result.output_data, result.output_size) << "\n";
 
+            return 0;
+        }
+        if (measure_overheads_cmd) {
+            measure_timer_overheads();
             return 0;
         }
 
